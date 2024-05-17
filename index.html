@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shape Calculator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #eceff1;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden; /* Ensure the numbers don't overflow */
+            position: relative; /* Required for absolute positioning */
+        }
+
+        .background-numbers {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Allow clicking through the numbers */
+            z-index: -1; /* Move the numbers behind other content */
+        }
+
+        .number {
+            position: absolute;
+            color: #90a4ae;
+            font-size: 12px;
+            animation: move linear infinite; /* Adjust animation duration and timing */
+        }
+
+        @keyframes move {
+            0% {
+                top: -10%;
+            }
+            100% {
+                top: 110%;
+            }
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 350px;
+            text-align: center;
+            transition: height 0.3s ease-in-out;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #00796b;
+        }
+
+        .shape-selection {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+
+        .shape-selection button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s;
+        }
+
+        .shape-selection button.selected {
+            background-color: #00796b;
+            color: white;
+        }
+
+        .shape-selection button:not(.selected) {
+            background-color: #ffffff;
+            color: #00796b;
+            border: 1px solid #00796b;
+        }
+
+        .shape-selection button:hover:not(.selected) {
+            background-color: #b2dfdb;
+        }
+
+        #form-container, #results {
+            margin-bottom: 20px;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        #form-container {
+            opacity: 0;
+        }
+
+        #form-container.active {
+            opacity: 1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #455a64;
+        }
+
+        input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #b0bec5;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        button.calculate-btn {
+            padding: 10px 25px;
+            background-color: #00796b;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s;
+        }
+
+        button.calculate-btn:hover {
+            background-color: #004d40;
+        }
+
+        #results p {
+            font-size: 1.1em;
+            margin: 10px 0;
+            color: #00796b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Shape Calculator</h1>
+        <div class="shape-selection">
+            <button id="btn-cylinder" onclick="selectShape('cylinder')" class="selected">Cylinder</button>
+            <button id="btn-rectangular-prism" onclick="selectShape('rectangular-prism')">Rectangular Prism</button>
+            <button id="btn-sphere" onclick="selectShape('sphere')">Sphere</button>
+        </div>
+        <div id="form-container" class="active">
+            <!-- Dynamic form content will be inserted here -->
+        </div>
+        <button class="calculate-btn" onclick="calculate()">Calculate</button>
+        <div id="results">
+            <h2>Results</h2>
+            <p id="surface-area"></p>
+            <p id="volume"></p>
+        </div>
+    </div>
+    <div class="background-numbers">
+        <!-- JavaScript will add the moving numbers here -->
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            selectShape('cylinder');
+            addBackgroundNumbers();
+        });
+
+        function addBackgroundNumbers() {
+            const backgroundNumbers = document.querySelector('.background-numbers');
+            for (let i = 1; i <= 50; i++) {
+                const size = Math.floor(Math.random() * 10 + 8) + 'px'; // Random size between 8px and 17px
+                const speed = Math.random() * 8 + 2; // Random speed between 2s and 10s
+                const top = '-10%'; // Start from the top
+                const left = Math.random() * 100 + '%'; // Random horizontal position
+                const number = document.createElement('div');
+                number.classList.add('number');
+                number.style.top = top;
+                number.style.left = left;
+                number.style.fontSize = size;
+                number.style.animationDuration = speed + 's';
+                number.innerText = i;
+                backgroundNumbers.appendChild(number);
+            }
+        }
+		
+        document.addEventListener('DOMContentLoaded', () => selectShape('cylinder'));
+
+        function selectShape(shape) {
+            document.getElementById('btn-cylinder').classList.remove('selected');
+            document.getElementById('btn-rectangular-prism').classList.remove('selected');
+            document.getElementById('btn-sphere').classList.remove('selected');
+            if (shape === 'cylinder') {
+                document.getElementById('btn-cylinder').classList.add('selected');
+            } else if (shape === 'rectangular-prism') {
+                document.getElementById('btn-rectangular-prism').classList.add('selected');
+            } else if (shape === 'sphere') {
+                document.getElementById('btn-sphere').classList.add('selected');
+            }
+            updateForm(shape);
+        }
+
+        function updateForm(shape) {
+            const formContainer = document.getElementById('form-container');
+            formContainer.classList.remove('active');
+            setTimeout(() => {
+                formContainer.innerHTML = '';
+
+                if (shape === 'cylinder') {
+                    formContainer.innerHTML = `
+                        <label for="radius">Radius:</label>
+                        <input type="number" id="radius" placeholder="Enter radius">
+                        <label for="height">Height:</label>
+                        <input type="number" id="height" placeholder="Enter height">
+                    `;
+                } else if (shape === 'rectangular-prism') {
+                    formContainer.innerHTML = `
+                        <label for="length">Length:</label>
+                        <input type="number" id="length" placeholder="Enter length">
+                        <label for="width">Width:</label>
+                        <input type="number" id="width" placeholder="Enter width">
+                        <label for="height">Height:</label>
+                        <input type="number" id="height" placeholder="Enter height">
+                    `;
+                } else if (shape === 'sphere') {
+                    formContainer.innerHTML = `
+                        <label for="radius">Radius:</label>
+                        <input type="number" id="radius" placeholder="Enter radius">
+                    `;
+                }
+
+                formContainer.classList.add('active');
+            }, 300); // This timeout should match the transition duration in CSS
+        }
+
+        function calculate() {
+            const selectedButton = document.querySelector('.shape-selection button.selected');
+            const shape = selectedButton.id.split('-')[1];
+            let surfaceArea = 0;
+            let volume = 0;
+
+            if (shape === 'cylinder') {
+                const radius = parseFloat(document.getElementById('radius').value);
+                const height = parseFloat(document.getElementById('height').value);
+                if (isNaN(radius) || isNaN(height)) {
+                    alert('Please enter valid values for radius and height.');
+                    return;
+                }
+                surfaceArea = 2 * Math.PI * radius * (radius + height);
+                volume = Math.PI * Math.pow(radius, 2) * height;
+            } else if (shape === 'rectangular-prism') {
+                const length = parseFloat(document.getElementById('length').value);
+                const width = parseFloat(document.getElementById('width').value);
+                const height = parseFloat(document.getElementById('height').value);
+                if (isNaN(length) || isNaN(width) || isNaN(height)) {
+                    alert('Please enter valid values for length, width, and height.');
+                    return;
+                }
+                surfaceArea = 2 * (length * width + width * height + height * length);
+                volume = length * width * height;
+            } else if (shape === 'sphere') {
+                const radius = parseFloat(document.getElementById('radius').value);
+                if (isNaN(radius)) {
+                    alert('Please enter a valid value for radius.');
+                    return;
+                }
+                surfaceArea = 4 * Math.PI * Math.pow(radius, 2);
+                volume = (4 / 3) * Math.PI * Math.pow(radius, 3);
+            }
+
+            document.getElementById('surface-area').innerText = `Surface Area: ${surfaceArea.toFixed(2)}`;
+            document.getElementById('volume').innerText = `Volume: ${volume.toFixed(2)}`;
+        }
+    </script>
+</body>
+</html>
